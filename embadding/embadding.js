@@ -1,18 +1,28 @@
-const {AzureOpenAIEmbeddings} = require("@langchain/openai")
-const {RedisVectorStore} = require ("@langchain/redis")
-const {docs} = require("./chuncks")
-const {client, clientConfig} = require("../client/clientRedis")
-const { VectorStore } = require("@langchain/core/vectorstores")
+const {OllamaEmbeddings} = require("@langchain/ollama")
+const {RedisVectorStore} = require("@langchain/redis")
+const {loadDocs} = require("./chuncks")
+const {client} = require("../client/clientRedis")
 
-const embeddings = new AzureOpenAIEmbeddings({
-    azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
-    azureOpenAIApiDeploymentName: process.env.AZURE_OPENAI_API_DEPLOYMENT_NAME,
-    azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
-    azureOpenAIApiVersion: AZURE_OPENAI_API_VERSION,
+const embeddings = new OllamaEmbeddings({
+    model: process.env.OLLAMA_MODEL,
+    baseUrl: process.env.OLLAMA_BASE_URL
 })
 
-const vectorStore = await RedisVectorStore.fromDocuments(docs, embeddings, clientConfig)
-
-const chunksSearch = await vectorStore.similaritySearch('4 batatas grandes', 4)
+const test = async () =>{
+    try{
+        const docs = await loadDocs()
+        const vectorStore = await RedisVectorStore.fromDocuments(docs, embeddings, {
+            redisClient: client,
+            indexName: "docs"
+        })
+        const chunksSearch = await vectorStore.similaritySearch('4 batatas grandes', 4)
+        console.log(chunksSearch)
+        return chunksSearch
+    } catch (e){
+        console.error(e)
+        throw e
+    }
+}
+const chunksSearch = test()
 
 module.exports = {chunksSearch}
