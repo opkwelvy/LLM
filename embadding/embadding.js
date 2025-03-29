@@ -1,28 +1,20 @@
-const {OllamaEmbeddings} = require("@langchain/ollama")
-const {RedisVectorStore} = require("@langchain/redis")
-const {loadDocs} = require("./chuncks")
-const {client} = require("../client/clientRedis")
+const { MemoryVectorStore } = require("langchain/vectorstores/memory");
+const { loadDocs } = require("./chuncks");
+const {embeddings} = require("../agent/agent")
 
-const embeddings = new OllamaEmbeddings({
-    model: process.env.OLLAMA_MODEL,
-    baseUrl: process.env.OLLAMA_BASE_URL
-})
-
-const test = async () =>{
-    try{
-        const docs = await loadDocs()
-        const vectorStore = await RedisVectorStore.fromDocuments(docs, embeddings, {
-            redisClient: client,
-            indexName: "docs"
-        })
-        const chunksSearch = await vectorStore.similaritySearch('4 batatas grandes', 4)
-        console.log(chunksSearch)
-        return chunksSearch
-    } catch (e){
-        console.error(e)
-        throw e
+const dataEmbedding = async () => {
+  try {
+    const docs = await loadDocs();
+    if (!docs || docs.length === 0) {
+      throw new Error("No documents found");
     }
-}
-const chunksSearch = test()
+    const contents = docs.map(doc => doc.pageContent)
+    const vectorStore = await MemoryVectorStore.fromTexts(contents, {}, embeddings);
+    return vectorStore;
+  } catch (e) {
+    console.error("Error on embedding: ",e);
+    throw e;
+  }
+};
 
-module.exports = {chunksSearch}
+module.exports = { dataEmbedding };
