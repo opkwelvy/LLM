@@ -8,6 +8,8 @@ const { PromptTemplate } = require("@langchain/core/prompts");
 
 const query = async () => {
   try {
+    console.log('service')
+
     const vectorStore = await dataEmbedding();
     const retriever = vectorStore.asRetriever();
 
@@ -31,7 +33,7 @@ Now, answer the following question: {input}`);
       input: "Quais são os ingredientes para fazer frango com laranja?",
     });
     console.log(res.answer)
-    return res;
+    return res.answer;
   } catch (e) {
     console.error(e);
     throw e;

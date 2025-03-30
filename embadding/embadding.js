@@ -4,12 +4,15 @@ const {embeddings} = require("../agent/agent")
 
 const dataEmbedding = async () => {
   try {
+    console.log('embedding')
+
     const docs = await loadDocs();
     if (!docs || docs.length === 0) {
       throw new Error("No documents found");
     }
     const contents = docs.map(doc => doc.pageContent)
     const vectorStore = await MemoryVectorStore.fromTexts(contents, {}, embeddings);
+    console.log(vectorStore)
     return vectorStore;
   } catch (e) {
     console.error("Error on embedding: ",e);
