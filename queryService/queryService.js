@@ -6,11 +6,10 @@ const {
 } = require("langchain/chains/combine_documents");
 const { PromptTemplate } = require("@langchain/core/prompts");
 
-const query = async () => {
+const query = async (query, file) => {
   try {
-    console.log('service')
 
-    const vectorStore = await dataEmbedding();
+    const vectorStore = await dataEmbedding(file);
     const retriever = vectorStore.asRetriever();
 
     const prompt = PromptTemplate.fromTemplate(`
@@ -30,9 +29,8 @@ Now, answer the following question: {input}`);
     });
 
     const res = await retrievalChain.invoke({
-      input: "Quais são os ingredientes para fazer frango com laranja?",
+      input: query,
     });
-    console.log(res.answer)
     return res.answer;
   } catch (e) {
     console.error(e);
